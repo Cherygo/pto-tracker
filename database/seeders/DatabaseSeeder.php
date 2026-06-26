@@ -26,6 +26,14 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => null,
         ]);
 
+        User::factory()->create([
+            'name' => 'Cherygo Admin',
+            'email' => 'cherygo@pto-tracker.com',
+            'password' => 'cherygo',
+            'role' => 'admin',
+            'tenant_id' => null,
+        ]);
+
         // 2. Create a Tenant
         $tenant = Tenant::create([
             'name' => 'Acme Corp',
