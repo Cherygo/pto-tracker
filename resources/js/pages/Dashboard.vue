@@ -54,6 +54,14 @@ const promoteToManager = (userId: number) => {
         preserveScroll: true,
     });
 };
+
+const approveRequest = (requestId: number) => {
+    router.patch(`/pto-requests/${requestId}/approve`, {}, { preserveScroll: true });
+};
+
+const denyRequest = (requestId: number) => {
+    router.patch(`/pto-requests/${requestId}/deny`, {}, { preserveScroll: true });
+};
 </script>
 
 <template>
@@ -84,15 +92,24 @@ const promoteToManager = (userId: number) => {
                     <form @submit.prevent="submitRequest" class="grid gap-4 py-4">
                         <div class="grid grid-cols-4 items-center gap-4">
                             <Label for="start_date" class="text-right">Start Date</Label>
-                            <Input id="start_date" type="date" v-model="requestForm.start_date" class="col-span-3" required />
+                            <div class="col-span-3">
+                                <Input id="start_date" type="date" v-model="requestForm.start_date" required />
+                                <p v-if="requestForm.errors.start_date" class="text-xs text-red-500 mt-1">{{ requestForm.errors.start_date }}</p>
+                            </div>
                         </div>
                         <div class="grid grid-cols-4 items-center gap-4">
                             <Label for="end_date" class="text-right">End Date</Label>
-                            <Input id="end_date" type="date" v-model="requestForm.end_date" class="col-span-3" required />
+                            <div class="col-span-3">
+                                <Input id="end_date" type="date" v-model="requestForm.end_date" required />
+                                <p v-if="requestForm.errors.end_date" class="text-xs text-red-500 mt-1">{{ requestForm.errors.end_date }}</p>
+                            </div>
                         </div>
                         <div class="grid grid-cols-4 items-center gap-4">
                             <Label for="reason" class="text-right">Reason</Label>
-                            <Input id="reason" v-model="requestForm.reason" class="col-span-3" placeholder="Vacation, Sick, etc." required />
+                            <div class="col-span-3">
+                                <Input id="reason" v-model="requestForm.reason" placeholder="Vacation, Sick, etc." required />
+                                <p v-if="requestForm.errors.reason" class="text-xs text-red-500 mt-1">{{ requestForm.errors.reason }}</p>
+                            </div>
                         </div>
                         <DialogFooter>
                             <Button type="submit" :disabled="requestForm.processing">Submit Request</Button>
@@ -224,10 +241,10 @@ const promoteToManager = (userId: number) => {
                                         </span>
                                     </td>
                                     <td v-if="role === 'manager'" class="px-4 py-3 text-right flex justify-end gap-2">
-                                        <Button v-if="req.status === 'pending'" variant="outline" size="sm" class="text-xs border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-500">
+                                        <Button v-if="req.status === 'pending'" @click="approveRequest(req.id)" variant="outline" size="sm" class="text-xs border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-500">
                                             Approve
                                         </Button>
-                                        <Button v-if="req.status === 'pending'" variant="outline" size="sm" class="text-xs border-red-500/50 hover:bg-red-500/10 text-red-500">
+                                        <Button v-if="req.status === 'pending'" @click="denyRequest(req.id)" variant="outline" size="sm" class="text-xs border-red-500/50 hover:bg-red-500/10 text-red-500">
                                             Deny
                                         </Button>
                                     </td>
