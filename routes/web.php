@@ -15,9 +15,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'store']);
 });
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', LogoutController::class)->name('logout');
+    
+    // Admin routes
+    Route::patch('/users/{user}/promote', [UserController::class, 'promoteToManager'])->name('users.promote');
 });
 
 require __DIR__.'/settings.php';
