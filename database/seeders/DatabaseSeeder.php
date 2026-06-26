@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\PtoBalance;
+use App\Models\PtoRequest;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,7 +19,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Create a Platform Admin
-        \App\Models\User::factory()->create([
+        User::factory()->create([
             'name' => 'Platform Admin',
             'email' => 'admin@pto-tracker.com',
             'role' => 'admin',
@@ -24,13 +27,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. Create a Tenant
-        $tenant = \App\Models\Tenant::create([
+        $tenant = Tenant::create([
             'name' => 'Acme Corp',
             'slug' => 'acme-corp',
         ]);
 
         // 3. Create a Tenant Manager
-        $manager = \App\Models\User::factory()->create([
+        $manager = User::factory()->create([
             'name' => 'Jane Manager',
             'email' => 'manager@acmecorp.com',
             'role' => 'manager',
@@ -38,7 +41,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 4. Create a Tenant Employee reporting to the Manager
-        $employee = \App\Models\User::factory()->create([
+        $employee = User::factory()->create([
             'name' => 'John Employee',
             'email' => 'employee@acmecorp.com',
             'role' => 'employee',
@@ -47,7 +50,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 5. Create a PTO Balance for the Employee
-        \App\Models\PtoBalance::create([
+        PtoBalance::create([
             'tenant_id' => $tenant->id,
             'user_id' => $employee->id,
             'year' => date('Y'),
@@ -56,7 +59,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 6. Create a PTO Request for the Employee (Approved)
-        \App\Models\PtoRequest::create([
+        PtoRequest::create([
             'tenant_id' => $tenant->id,
             'user_id' => $employee->id,
             'start_date' => now()->addDays(10)->format('Y-m-d'),
@@ -69,7 +72,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 7. Create a PTO Request for the Employee (Pending)
-        \App\Models\PtoRequest::create([
+        PtoRequest::create([
             'tenant_id' => $tenant->id,
             'user_id' => $employee->id,
             'start_date' => now()->addDays(30)->format('Y-m-d'),
