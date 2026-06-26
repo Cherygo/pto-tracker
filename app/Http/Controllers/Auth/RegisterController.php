@@ -30,19 +30,25 @@ class RegisterController extends Controller
     {
         $validated = $request->validated();
 
-        // Create the Tenant
-        $tenant = Tenant::create([
-            'name' => $validated['tenant_name'],
-            'slug' => Str::slug($validated['tenant_name']),
-        ]);
+        $tenant = Tenant::where('name', $validated['tenant_name'])->first();
+        
+        if ($tenant) {
+            $role = 'employee';
+        } else {
+            $tenant = Tenant::create([
+                'name' => $validated['tenant_name'],
+                'slug' => Str::slug($validated['tenant_name']),
+            ]);
+            $role = 'manager';
+        }
 
-        // Create the Manager User
+        // Create the User
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'tenant_id' => $tenant->id,
-            'role' => 'manager',
+            'role' => $role,
         ]);
 
         // Log the user in
