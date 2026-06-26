@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
 import { ArrowRight, CalendarDays, ShieldCheck, Zap } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
 
 defineProps<{
     auth: {
@@ -55,15 +55,15 @@ defineProps<{
                         <span class="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
                         The Modern Way to Manage Time Off
                     </div>
-                    
+
                     <h1 class="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
                         Reclaim Your Time Off
                     </h1>
-                    
+
                     <p class="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl mb-10 leading-relaxed">
                         The effortless way for modern teams to track, request, and manage Paid Time Off. Built for scale, designed for simplicity, and deeply integrated with your multi-tenant workflows.
                     </p>
-                    
+
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button as-child size="lg" class="w-full sm:w-auto gap-2 shadow-lg shadow-primary/25 transition-all hover:scale-105">
                             <Link href="/register">
