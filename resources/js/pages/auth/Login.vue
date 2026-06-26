@@ -28,7 +28,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    form.post('/login', {
         onFinish: () => form.reset('password'),
     });
 };
@@ -99,7 +99,7 @@ const submit = () => {
 
         <div class="text-center text-sm text-muted-foreground">
             Don't have an account?
-            <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+            <TextLink href="/register" :tabindex="5">Sign up</TextLink>
         </div>
     </form>
 </template>
