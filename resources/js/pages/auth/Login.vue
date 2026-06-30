@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useForm, Head } from '@inertiajs/vue3';
+// FIX: Imported Wayfinder auto-generated route functions
+// BEFORE: Used hardcoded string routes
+import { login, register } from '@/routes';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -28,16 +31,21 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/login', {
+    // FIX: Using Wayfinder auto-generated route function instead of hardcoded string
+    // BEFORE: form.post('/login', {
+    form.post(login.url(), {
         onFinish: () => form.reset('password'),
     });
 };
 </script>
 
 <template>
-    <Head title="Log in" />
+    <!-- FIX: Vue components must have a single root element. Wrapped Head and form in a div. -->
+    <!-- BEFORE: <Head title="Log in" /> followed by <div v-if="status">... -->
+    <div>
+        <Head title="Log in" />
 
-    <div
+        <div
         v-if="status"
         class="mb-4 text-center text-sm font-medium text-green-600"
     >
@@ -99,7 +107,10 @@ const submit = () => {
 
         <div class="text-center text-sm text-muted-foreground">
             Don't have an account?
-            <TextLink href="/register" :tabindex="5">Sign up</TextLink>
+            <!-- FIX: Using Wayfinder route function -->
+            <!-- BEFORE: <TextLink href="/register" :tabindex="5">Sign up</TextLink> -->
+            <TextLink :href="register.url()" :tabindex="5">Sign up</TextLink>
         </div>
     </form>
+    </div>
 </template>

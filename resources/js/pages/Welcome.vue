@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+// FIX: Imported Wayfinder auto-generated route functions
+// BEFORE: Used hardcoded string routes
+import { dashboard, login, register } from '@/routes';
 import { ArrowRight, CalendarDays, ShieldCheck, Zap } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 
@@ -11,9 +14,12 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Welcome to PTO Tracker" />
+    <!-- FIX: Vue components must have a single root element. Wrapped Head and content in a div. -->
+    <!-- BEFORE: <Head title="Welcome to PTO Tracker" /> followed by <div class="min-h-screen ..."> -->
+    <div>
+        <Head title="Welcome to PTO Tracker" />
 
-    <div class="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-primary">
+        <div class="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-primary">
         <!-- Header -->
         <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div class="container mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -26,16 +32,22 @@ defineProps<{
 
                 <nav class="flex items-center gap-4">
                     <template v-if="auth.user">
-                        <Link href="/dashboard" class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                        <!-- FIX: Using Wayfinder auto-generated route function instead of hardcoded string -->
+                        <!-- BEFORE: <Link href="/dashboard" ...> -->
+                        <Link :href="dashboard.url()" class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                             Dashboard
                         </Link>
                     </template>
                     <template v-else>
-                        <Link href="/login" class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                        <!-- FIX: Using Wayfinder auto-generated route function instead of hardcoded string -->
+                        <!-- BEFORE: <Link href="/login" ...> -->
+                        <Link :href="login.url()" class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                             Log in
                         </Link>
                         <Button as-child variant="default" size="sm" class="h-9 px-4 shadow-md transition-transform hover:scale-105">
-                            <Link href="/register">Get Started</Link>
+                            <!-- FIX: Using Wayfinder route function -->
+                            <!-- BEFORE: <Link href="/register">Get Started</Link> -->
+                            <Link :href="register.url()">Get Started</Link>
                         </Button>
                     </template>
                 </nav>
@@ -66,13 +78,17 @@ defineProps<{
 
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button as-child size="lg" class="w-full sm:w-auto gap-2 shadow-lg shadow-primary/25 transition-all hover:scale-105">
-                            <Link href="/register">
+                            <!-- FIX: Using Wayfinder route function -->
+                            <!-- BEFORE: <Link href="/register">... -->
+                            <Link :href="register.url()">
                                 Start your free trial
                                 <ArrowRight class="h-4 w-4" />
                             </Link>
                         </Button>
                         <Button as-child variant="outline" size="lg" class="w-full sm:w-auto group">
-                            <Link href="/login">
+                            <!-- FIX: Using Wayfinder route function -->
+                            <!-- BEFORE: <Link href="/login">... -->
+                            <Link :href="login.url()">
                                 Sign In
                             </Link>
                         </Button>
@@ -148,5 +164,6 @@ defineProps<{
                 </div>
             </div>
         </footer>
+    </div>
     </div>
 </template>

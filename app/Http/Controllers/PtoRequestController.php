@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePtoRequest;
 use App\Models\PtoBalance;
 use App\Models\PtoRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -35,11 +36,11 @@ class PtoRequestController extends Controller
             ->whereIn('status', ['pending', 'approved'])
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate, $endDate])
-                      ->orWhereBetween('end_date', [$startDate, $endDate])
-                      ->orWhere(function ($q) use ($startDate, $endDate) {
-                          $q->where('start_date', '<=', $startDate)
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
                             ->where('end_date', '>=', $endDate);
-                      });
+                    });
             })->exists();
 
         if ($hasOverlap) {
@@ -48,7 +49,7 @@ class PtoRequestController extends Controller
 
         // Check balance
         $balance = PtoBalance::where('user_id', $user->id)->where('year', date('Y'))->first();
-        if (!$balance) {
+        if (! $balance) {
             return back()->withErrors(['start_date' => 'No PTO balance found for the current year.']);
         }
 
@@ -76,10 +77,10 @@ class PtoRequestController extends Controller
      */
     public function approve(Request $request, PtoRequest $ptoRequest): RedirectResponse
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         $authUser = Auth::user();
 
-        if (!$authUser->isManager()) {
+        if (! $authUser->isManager()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -112,10 +113,10 @@ class PtoRequestController extends Controller
      */
     public function deny(Request $request, PtoRequest $ptoRequest): RedirectResponse
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         $authUser = Auth::user();
 
-        if (!$authUser->isManager()) {
+        if (! $authUser->isManager()) {
             abort(403, 'Unauthorized action.');
         }
 

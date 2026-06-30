@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
+// FIX: Imported Wayfinder auto-generated route functions
+// BEFORE: import { login } from '@/routes';
+import { login, register } from '@/routes';
 
 defineProps<{
     passwordRules?: string;
@@ -29,16 +31,21 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/register', {
+    // FIX: Using Wayfinder auto-generated route function instead of hardcoded string
+    // BEFORE: form.post('/register', {
+    form.post(register.url(), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
 </script>
 
 <template>
-    <Head title="Register" />
+    <!-- FIX: Vue components must have a single root element. Wrapped Head and form in a div. -->
+    <!-- BEFORE: <Head title="Register" /> followed by <form @submit... -->
+    <div>
+        <Head title="Register" />
 
-    <form @submit.prevent="submit" class="flex flex-col gap-6">
+        <form @submit.prevent="submit" class="flex flex-col gap-6">
         <div class="grid gap-6">
             <div class="grid gap-2">
                 <Label for="name">Name</Label>
@@ -129,12 +136,15 @@ const submit = () => {
 
         <div class="text-center text-sm text-muted-foreground">
             Already have an account?
+            <!-- FIX: Using Wayfinder route function -->
+            <!-- BEFORE: <TextLink href="/login" class="underline underline-offset-4" :tabindex="7">Log in</TextLink> -->
             <TextLink
-                href="/login"
+                :href="login.url()"
                 class="underline underline-offset-4"
                 :tabindex="7"
                 >Log in</TextLink
             >
         </div>
     </form>
+    </div>
 </template>

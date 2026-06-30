@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { Head, useForm, router } from '@inertiajs/vue3';
+// FIX: Imported Wayfinder auto-generated route functions
+// BEFORE: Used hardcoded string routes
+import { store as ptoRequestsStore, approve as ptoRequestsApprove, deny as ptoRequestsDeny } from '@/routes/pto-requests';
+import { promoteToManager as usersPromote } from '@/routes/users';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +45,9 @@ const requestForm = useForm({
 const isRequestModalOpen = ref(false);
 
 const submitRequest = () => {
-    requestForm.post('/pto-requests', {
+    // FIX: Using Wayfinder auto-generated route function instead of hardcoded string
+    // BEFORE: requestForm.post('/pto-requests', {
+    requestForm.post(ptoRequestsStore.url(), {
         onSuccess: () => {
             isRequestModalOpen.value = false;
             requestForm.reset();
@@ -50,24 +56,33 @@ const submitRequest = () => {
 };
 
 const promoteToManager = (userId: number) => {
-    router.patch(`/users/${userId}/promote`, {}, {
+    // FIX: Using Wayfinder auto-generated route function instead of hardcoded string
+    // BEFORE: router.patch(`/users/${userId}/promote`, {}, { preserveScroll: true });
+    router.patch(usersPromote.url({ user: userId }), {}, {
         preserveScroll: true,
     });
 };
 
 const approveRequest = (requestId: number) => {
-    router.patch(`/pto-requests/${requestId}/approve`, {}, { preserveScroll: true });
+    // FIX: Using Wayfinder route function
+    // BEFORE: router.patch(`/pto-requests/${requestId}/approve`, {}, { preserveScroll: true });
+    router.patch(ptoRequestsApprove.url({ ptoRequest: requestId }), {}, { preserveScroll: true });
 };
 
 const denyRequest = (requestId: number) => {
-    router.patch(`/pto-requests/${requestId}/deny`, {}, { preserveScroll: true });
+    // FIX: Using Wayfinder route function
+    // BEFORE: router.patch(`/pto-requests/${requestId}/deny`, {}, { preserveScroll: true });
+    router.patch(ptoRequestsDeny.url({ ptoRequest: requestId }), {}, { preserveScroll: true });
 };
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <!-- FIX: Vue components must have a single root element. Wrapped Head and content in a div. -->
+    <!-- BEFORE: <Head title="Dashboard" /> followed directly by <div class="flex ..."> -->
+    <div>
+        <Head title="Dashboard" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 max-w-7xl mx-auto w-full">
+        <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 max-w-7xl mx-auto w-full">
         <!-- Dashboard Header & Actions -->
         <div class="flex items-center justify-between">
             <div>
@@ -260,5 +275,6 @@ const denyRequest = (requestId: number) => {
                 </CardContent>
             </Card>
         </template>
+    </div>
     </div>
 </template>
