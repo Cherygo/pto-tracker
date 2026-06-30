@@ -67,7 +67,7 @@ test('manager can approve a request and deduct balance', function () {
     $response->assertSessionHasNoErrors();
 
     expect($request->fresh()->status)->toBe('approved');
-    expect($balance->fresh()->used_days)->toBe(2);
+    expect($balance->fresh()->used_days)->toEqual(2);
 });
 
 test('manager can deny a request', function () {
