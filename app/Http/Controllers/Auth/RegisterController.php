@@ -51,6 +51,12 @@ class RegisterController extends Controller
             'role' => $role,
         ]);
 
+        \App\Models\PtoBalance::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'year' => (int) date('Y'),
+        ]);
+
         // Log the user in
         Auth::login($user);
 
