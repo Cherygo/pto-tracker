@@ -38,6 +38,7 @@ class DashboardController extends Controller
                 'role' => 'manager',
                 'balance' => $balance,
                 'requests' => PtoRequest::with('user')->latest()->get(),
+                'company_name' => $user->tenant->name ?? 'Unknown Company',
             ]);
         }
 
@@ -46,6 +47,7 @@ class DashboardController extends Controller
             'role' => 'employee',
             'balance' => $balance,
             'requests' => PtoRequest::where('user_id', $user->id)->latest()->get(),
+            'company_name' => $user->tenant->name ?? 'Unknown Company',
         ]);
     }
 }
