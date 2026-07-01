@@ -3,7 +3,7 @@ import { Head, useForm, router } from '@inertiajs/vue3';
 // FIX: Imported Wayfinder auto-generated route functions
 // BEFORE: Used hardcoded string routes
 import { store as ptoRequestsStore, approve as ptoRequestsApprove, deny as ptoRequestsDeny } from '@/routes/pto-requests';
-import { promoteToManager as usersPromote } from '@/routes/users';
+import { promote as usersPromote } from '@/routes/users';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ const props = defineProps<{
         used_days: number;
     };
     requests?: any[];
+    company_name?: string;
 }>();
 
 const requestForm = useForm({
@@ -74,6 +75,15 @@ const denyRequest = (requestId: number) => {
     // BEFORE: router.patch(`/pto-requests/${requestId}/deny`, {}, { preserveScroll: true });
     router.patch(ptoRequestsDeny.url({ ptoRequest: requestId }), {}, { preserveScroll: true });
 };
+
+const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+};
 </script>
 
 <template>
@@ -88,13 +98,14 @@ const denyRequest = (requestId: number) => {
             <div>
                 <h1 class="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
                 <p class="text-muted-foreground mt-1">
-                    Welcome back! You are logged in as <span class="capitalize font-semibold text-primary">{{ role }}</span>.
+                    Welcome back! You are logged in as <span class="capitalize font-semibold text-primary">{{ role }}</span>
+                    <span v-if="role !== 'admin'"> at <span class="font-semibold text-primary">{{ company_name }}</span></span>.
                 </p>
             </div>
-            
+
             <Dialog v-model:open="isRequestModalOpen" v-if="role !== 'admin'">
                 <DialogTrigger as-child>
-                    <Button variant="default">Request Time Off</Button>
+                    <Button variant="default" class="cursor-pointer">Request Time Off</Button>
                 </DialogTrigger>
                 <DialogContent class="sm:max-w-[425px]">
                     <DialogHeader>
@@ -103,7 +114,7 @@ const denyRequest = (requestId: number) => {
                             Select your dates and submit your PTO request for manager approval.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <form @submit.prevent="submitRequest" class="grid gap-4 py-4">
                         <div class="grid grid-cols-4 items-center gap-4">
                             <Label for="start_date" class="text-right">Start Date</Label>
@@ -202,20 +213,20 @@ const denyRequest = (requestId: number) => {
                 <Card>
                     <CardHeader class="pb-2">
                         <CardDescription>Allocated Days ({{ new Date().getFullYear() }})</CardDescription>
-                        <CardTitle class="text-4xl font-bold">{{ balance?.allocated_days || 0 }}</CardTitle>
+                        <CardTitle class="text-4xl font-bold">{{ Math.round(balance?.allocated_days || 0) }}</CardTitle>
                     </CardHeader>
                 </Card>
                 <Card>
                     <CardHeader class="pb-2">
                         <CardDescription>Used Days</CardDescription>
-                        <CardTitle class="text-4xl font-bold">{{ balance?.used_days || 0 }}</CardTitle>
+                        <CardTitle class="text-4xl font-bold">{{ Math.round(balance?.used_days || 0) }}</CardTitle>
                     </CardHeader>
                 </Card>
                 <Card class="border-primary/50 bg-primary/5">
                     <CardHeader class="pb-2">
                         <CardDescription class="text-primary/80">Remaining Days</CardDescription>
                         <CardTitle class="text-4xl font-bold text-primary">
-                            {{ (balance?.allocated_days || 0) - (balance?.used_days || 0) }}
+                            {{ Math.round((balance?.allocated_days || 0) - (balance?.used_days || 0)) }}
                         </CardTitle>
                     </CardHeader>
                 </Card>
@@ -244,7 +255,7 @@ const denyRequest = (requestId: number) => {
                             <tbody>
                                 <tr v-for="req in requests" :key="req.id" class="border-b border-border/50 last:border-0 hover:bg-muted/20">
                                     <td v-if="role === 'manager'" class="px-4 py-3 font-medium">{{ req.user?.name || 'Unknown' }}</td>
-                                    <td class="px-4 py-3">{{ req.start_date }} to {{ req.end_date }}</td>
+                                    <td class="px-4 py-3">{{ formatDate(req.start_date) }} to {{ formatDate(req.end_date) }}</td>
                                     <td class="px-4 py-3 text-muted-foreground">{{ req.reason }}</td>
                                     <td class="px-4 py-3">
                                         <span :class="{
