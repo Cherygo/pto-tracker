@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid } from '@lucide/vue';
+import { LayoutGrid, Calendar } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -19,8 +19,13 @@ import type { NavItem } from '@/types';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Calendar',
+        href: '/calendar',
+        icon: Calendar,
     },
 ];
 
