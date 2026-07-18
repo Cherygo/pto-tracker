@@ -81,7 +81,7 @@ defineProps<{
                             <!-- FIX: Using Wayfinder route function -->
                             <!-- BEFORE: <Link href="/register">... -->
                             <Link :href="register.url()">
-                                Start your free trial
+                                Start
                                 <ArrowRight class="h-4 w-4" />
                             </Link>
                         </Button>

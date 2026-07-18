@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\NoOverlappingPto;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePtoRequest extends FormRequest
@@ -19,8 +20,15 @@ class StorePtoRequest extends FormRequest
      */
     public function rules(): array
     {
+        $excludeId = $this->route('ptoRequest')?->id;
+
         return [
-            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'start_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                new NoOverlappingPto($this->input('end_date'), $excludeId),
+            ],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason' => ['required', 'string', 'max:255'],
         ];

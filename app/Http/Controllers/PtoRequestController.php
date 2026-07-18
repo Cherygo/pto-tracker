@@ -31,22 +31,6 @@ class PtoRequestController extends Controller
             return back()->withErrors(['start_date' => 'The selected date range must include at least one working day.']);
         }
 
-        // Check overlapping requests
-        $hasOverlap = PtoRequest::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
-                    ->orWhere(function ($q) use ($startDate, $endDate) {
-                        $q->where('start_date', '<=', $startDate)
-                            ->where('end_date', '>=', $endDate);
-                    });
-            })->exists();
-
-        if ($hasOverlap) {
-            return back()->withErrors(['start_date' => 'You already have an overlapping PTO request for these dates.']);
-        }
-
         // Check balance
         $balance = PtoBalance::where('user_id', $user->id)->where('year', date('Y'))->first();
         if (! $balance) {
@@ -70,6 +54,53 @@ class PtoRequestController extends Controller
         ]);
 
         return back()->with('success', 'PTO Request submitted successfully.');
+    }
+
+    /**
+     * Update a pending PTO request.
+     */
+    public function update(StorePtoRequest $request, PtoRequest $ptoRequest): RedirectResponse
+    {
+        $validated = $request->validated();
+        $user = Auth::user();
+
+        if ($ptoRequest->user_id !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($ptoRequest->status !== 'pending') {
+            return back()->withErrors(['error' => 'Only pending requests can be modified.']);
+        }
+
+        $startDate = Carbon::parse($validated['start_date'])->startOfDay();
+        $endDate = Carbon::parse($validated['end_date'])->startOfDay();
+
+        // Calculate working days
+        $requestedDays = $startDate->diffInWeekdays($endDate) + ($startDate->isWeekday() ? 1 : 0);
+
+        if ($requestedDays <= 0) {
+            return back()->withErrors(['start_date' => 'The selected date range must include at least one working day.']);
+        }
+
+        // Check balance
+        $balance = PtoBalance::where('user_id', $user->id)->where('year', date('Y'))->first();
+        if (! $balance) {
+            return back()->withErrors(['start_date' => 'No PTO balance found for the current year.']);
+        }
+
+        $remainingDays = $balance->allocated_days - $balance->used_days;
+
+        if ($requestedDays > $remainingDays) {
+            return back()->withErrors(['end_date' => "You are requesting {$requestedDays} days, but only have {$remainingDays} days remaining."]);
+        }
+
+        $ptoRequest->update([
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'reason' => $validated['reason'],
+        ]);
+
+        return back()->with('success', 'PTO Request updated successfully.');
     }
 
     /**
@@ -131,5 +162,39 @@ class PtoRequestController extends Controller
         ]);
 
         return back()->with('success', 'PTO Request denied.');
+    }
+
+    /**
+     * Cancel a PTO request.
+     */
+    public function cancel(Request $request, PtoRequest $ptoRequest): RedirectResponse
+    {
+        $authUser = Auth::user();
+
+        if ($ptoRequest->user_id !== $authUser->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (in_array($ptoRequest->status, ['denied', 'cancelled'])) {
+            return back()->withErrors(['error' => 'This request cannot be cancelled.']);
+        }
+
+        if ($ptoRequest->status === 'approved') {
+            // Refund the days
+            $startDate = Carbon::parse($ptoRequest->start_date);
+            $endDate = Carbon::parse($ptoRequest->end_date);
+            $requestedDays = $startDate->diffInWeekdays($endDate) + ($startDate->isWeekday() ? 1 : 0);
+
+            $balance = PtoBalance::where('user_id', $ptoRequest->user_id)->where('year', $startDate->year)->first();
+            if ($balance) {
+                $balance->decrement('used_days', $requestedDays);
+            }
+        }
+
+        $ptoRequest->update([
+            'status' => 'cancelled',
+        ]);
+
+        return back()->with('success', 'PTO Request cancelled successfully.');
     }
 }

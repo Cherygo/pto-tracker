@@ -3,10 +3,10 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\PtoRequestController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
@@ -27,8 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // PTO Request routes
     Route::post('/pto-requests', [PtoRequestController::class, 'store'])->name('pto-requests.store');
+    Route::put('/pto-requests/{ptoRequest}', [PtoRequestController::class, 'update'])->name('pto-requests.update');
     Route::patch('/pto-requests/{ptoRequest}/approve', [PtoRequestController::class, 'approve'])->name('pto-requests.approve');
     Route::patch('/pto-requests/{ptoRequest}/deny', [PtoRequestController::class, 'deny'])->name('pto-requests.deny');
+    Route::patch('/pto-requests/{ptoRequest}/cancel', [PtoRequestController::class, 'cancel'])->name('pto-requests.cancel');
 });
 
 require __DIR__.'/settings.php';

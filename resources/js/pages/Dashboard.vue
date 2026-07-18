@@ -2,7 +2,7 @@
 import { Head, useForm, router } from '@inertiajs/vue3';
 // FIX: Imported Wayfinder auto-generated route functions
 // BEFORE: Used hardcoded string routes
-import { store as ptoRequestsStore, approve as ptoRequestsApprove, deny as ptoRequestsDeny } from '@/routes/pto-requests';
+import { store as ptoRequestsStore, update as ptoRequestsUpdate, approve as ptoRequestsApprove, deny as ptoRequestsDeny, cancel as ptoRequestsCancel } from '@/routes/pto-requests';
 import { promote as usersPromote } from '@/routes/users';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -44,16 +44,39 @@ const requestForm = useForm({
 });
 
 const isRequestModalOpen = ref(false);
+const editingRequestId = ref<number | null>(null);
+
+const openCreateModal = () => {
+    editingRequestId.value = null;
+    requestForm.reset();
+    isRequestModalOpen.value = true;
+};
+
+const openEditModal = (req: any) => {
+    editingRequestId.value = req.id;
+    requestForm.start_date = req.start_date.split('T')[0];
+    requestForm.end_date = req.end_date.split('T')[0];
+    requestForm.reason = req.reason;
+    isRequestModalOpen.value = true;
+};
 
 const submitRequest = () => {
-    // FIX: Using Wayfinder auto-generated route function instead of hardcoded string
-    // BEFORE: requestForm.post('/pto-requests', {
-    requestForm.post(ptoRequestsStore.url(), {
-        onSuccess: () => {
-            isRequestModalOpen.value = false;
-            requestForm.reset();
-        },
-    });
+    if (editingRequestId.value) {
+        requestForm.put(ptoRequestsUpdate.url({ ptoRequest: editingRequestId.value }), {
+            onSuccess: () => {
+                isRequestModalOpen.value = false;
+                requestForm.reset();
+                editingRequestId.value = null;
+            },
+        });
+    } else {
+        requestForm.post(ptoRequestsStore.url(), {
+            onSuccess: () => {
+                isRequestModalOpen.value = false;
+                requestForm.reset();
+            },
+        });
+    }
 };
 
 const promoteToManager = (userId: number) => {
@@ -74,6 +97,12 @@ const denyRequest = (requestId: number) => {
     // FIX: Using Wayfinder route function
     // BEFORE: router.patch(`/pto-requests/${requestId}/deny`, {}, { preserveScroll: true });
     router.patch(ptoRequestsDeny.url({ ptoRequest: requestId }), {}, { preserveScroll: true });
+};
+
+const cancelRequest = (requestId: number) => {
+    if (confirm('Are you sure you want to cancel this request?')) {
+        router.patch(ptoRequestsCancel.url({ ptoRequest: requestId }), {}, { preserveScroll: true });
+    }
 };
 
 const formatDate = (dateString: string) => {
@@ -105,13 +134,13 @@ const formatDate = (dateString: string) => {
 
             <Dialog v-model:open="isRequestModalOpen" v-if="role !== 'admin'">
                 <DialogTrigger as-child>
-                    <Button variant="default" class="cursor-pointer">Request Time Off</Button>
+                    <Button variant="default" class="cursor-pointer" @click="openCreateModal">Request Time Off</Button>
                 </DialogTrigger>
                 <DialogContent class="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Request Time Off</DialogTitle>
+                        <DialogTitle>{{ editingRequestId ? 'Edit PTO Request' : 'Request Time Off' }}</DialogTitle>
                         <DialogDescription>
-                            Select your dates and submit your PTO request for manager approval.
+                            {{ editingRequestId ? 'Modify the dates or reason for your pending request.' : 'Select your dates and submit your PTO request for manager approval.' }}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -138,7 +167,8 @@ const formatDate = (dateString: string) => {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit" :disabled="requestForm.processing">Submit Request</Button>
+                            <Button type="button" variant="outline" @click="isRequestModalOpen = false">Cancel</Button>
+                            <Button type="submit" :disabled="requestForm.processing">{{ editingRequestId ? 'Save Changes' : 'Submit Request' }}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -249,7 +279,7 @@ const formatDate = (dateString: string) => {
                                     <th class="px-4 py-3">Dates</th>
                                     <th class="px-4 py-3">Reason</th>
                                     <th class="px-4 py-3">Status</th>
-                                    <th v-if="role === 'manager'" class="px-4 py-3 text-right">Actions</th>
+                                    <th class="px-4 py-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -266,13 +296,15 @@ const formatDate = (dateString: string) => {
                                             {{ req.status }}
                                         </span>
                                     </td>
-                                    <td v-if="role === 'manager'" class="px-4 py-3 text-right flex justify-end gap-2">
-                                        <Button v-if="req.status === 'pending'" @click="approveRequest(req.id)" variant="outline" size="sm" class="text-xs border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-500">
-                                            Approve
-                                        </Button>
-                                        <Button v-if="req.status === 'pending'" @click="denyRequest(req.id)" variant="outline" size="sm" class="text-xs border-red-500/50 hover:bg-red-500/10 text-red-500">
-                                            Deny
-                                        </Button>
+                                    <td class="px-4 py-3 text-right">
+                                        <div v-if="role === 'manager' && req.status === 'pending'" class="flex justify-end gap-2">
+                                            <Button size="sm" variant="outline" class="h-8 border-green-500/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30" @click="approveRequest(req.id)">Approve</Button>
+                                            <Button size="sm" variant="outline" class="h-8 border-destructive/30 text-destructive hover:bg-destructive/10" @click="denyRequest(req.id)">Deny</Button>
+                                        </div>
+                                        <div v-if="role === 'employee' && (req.status === 'pending' || req.status === 'approved')" class="flex justify-end gap-2">
+                                            <Button v-if="req.status === 'pending'" size="sm" variant="outline" class="h-8 border-blue-500/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30" @click="openEditModal(req)">Edit</Button>
+                                            <Button size="sm" variant="outline" class="h-8 border-muted-foreground/30 text-muted-foreground hover:bg-muted" @click="cancelRequest(req.id)">Cancel</Button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr v-if="!requests || requests.length === 0">
